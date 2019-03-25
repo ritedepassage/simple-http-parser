@@ -1,11 +1,14 @@
 #include <stdint.h>
 #include <iostream>
+#include <string>
 
 #include <pcap.h>
 
 std::string pcapFileName;
 std::string captureDirectory;
 std::string ipToFilter;
+
+char errorBuffer[PCAP_ERRBUF_SIZE];
 
 void ParseCommandLineArguments(int argc, char **argv) {
 
@@ -44,9 +47,32 @@ void ParseCommandLineArguments(int argc, char **argv) {
 	}
 }
 
+pcap_t *ObtainOfflinePcapHandle() {
+
+	pcap_t *pcapFileHandle = pcap_open_offline(pcapFileName.c_str(), errorBuffer);
+
+	return pcapFileHandle;
+}
+
 int main(int argc, char **argv) {
 
 	ParseCommandLineArguments(argc, argv);
+
+	pcap_t *pcapHandle = NULL;
+
+	if (pcapFileName.size() > 0) {
+
+		pcapHandle = ObtainOfflinePcapHandle();
+
+		if (pcapHandle == NULL) {
+
+			std::cout << "failed to open pcap file: " << pcapFileName << std::endl;
+			exit(-3);
+		}
+	}
+	else {
+
+	}
 
 	return 0;
 }
