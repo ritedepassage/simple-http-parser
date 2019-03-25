@@ -140,6 +140,24 @@ pcap_t *ObtainOnlinePcapHandle() {
 	return interfaceHandle;
 }
 
+void CaptureTraffic(pcap_t *pcapHandle) {
+
+	struct pcap_pkthdr  *packetHeader;
+	const unsigned char *packetData;
+	int ret = 0;
+
+	while (((ret = pcap_next_ex(pcapHandle, &packetHeader, &packetData)) >= 0)) {
+
+		if (ret == -1) {
+
+			std::cout << "error occured while reading packet: " << pcap_geterr(pcapHandle);
+			continue;
+		}
+		if (ret == 0)
+			continue;
+	}
+}
+
 int main(int argc, char **argv) {
 
 	ParseCommandLineArguments(argc, argv);
@@ -171,6 +189,8 @@ int main(int argc, char **argv) {
 
 		ApplyFilter(pcapHandle);
 	}
+
+	CaptureTraffic(pcapHandle);
 
 	return 0;
 }
