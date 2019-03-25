@@ -47,6 +47,42 @@ void ParseCommandLineArguments(int argc, char **argv) {
 	}
 }
 
+void ApplyFilter(pcap_t *pcapHandle) {
+
+	char filterExp[23] = { 0 };
+	bpf_u_int32 mask;
+	bpf_u_int32 net;
+	struct bpf_program fp;
+
+	sprintf_s(filterExp, "ip host %s", ipToFilter.c_str());
+
+	char *dev = pcap_lookupdev(errorBuffer);
+
+	if (dev == NULL) {
+
+		std::cout << "faield to look up dev" << std::endl;
+		exit(-5);
+	}
+
+	if (pcap_lookupnet(dev, &net, &mask, errorBuffer) == -1) {
+
+		std::cout << "failed to look up net" << std::endl;
+		exit(-6);
+	}
+
+	if (pcap_compile(pcapHandle, &fp, filterExp, 0, net) == -1) {
+
+		std::cout << "couldn't parse filter " << filterExp << ": " << pcap_geterr(pcapHandle) << std::endl;
+		exit(-7);
+	}
+
+	if (pcap_setfilter(pcapHandle, &fp) == -1) {
+
+		std::cout << "couldn't install filter " << filterExp << ": " << pcap_geterr(pcapHandle) << std::endl;
+		exit(-8);
+	}
+}
+
 pcap_t *ObtainOfflinePcapHandle() {
 
 	pcap_t *pcapFileHandle = pcap_open_offline(pcapFileName.c_str(), errorBuffer);
@@ -99,6 +135,8 @@ pcap_t *ObtainOnlinePcapHandle() {
 
 	interfaceHandle = pcap_open(selectedInterface->name, 65536, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL, errorBuffer);
 
+	pcap_freealldevs(networkInterfaces);
+
 	return interfaceHandle;
 }
 
@@ -119,7 +157,19 @@ int main(int argc, char **argv) {
 		}
 	}
 	else {
+
 		pcapHandle = ObtainOnlinePcapHandle();
+
+		if (pcapHandle == NULL) {
+
+			std::cout << "failed to open interface: " << std::endl;
+			exit(-4);
+		}
+	}
+
+	if (ipToFilter.size() > 0) {
+
+		ApplyFilter(pcapHandle);
 	}
 
 	return 0;
