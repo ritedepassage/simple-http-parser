@@ -42,8 +42,16 @@ private:
 	Flow InitialFlow;
 	TCP_CONNECTION_STATE state;
 public:
+
 	TcpStream(Flow& initialFlow) : state{ TCP_CONNECTION_STATE::UNKNOWN }, InitialFlow{ initialFlow } {
 	}
+
+	bool Trace(Flow &currentFlow, const TcpHeader *currentHeader);
 };
+
+bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
+
+	return true;
+}
 
 #endif

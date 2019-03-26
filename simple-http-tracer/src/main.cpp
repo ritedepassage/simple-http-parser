@@ -198,7 +198,10 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 
 					auto tcpParser = std::make_shared<TcpStream>(flowKey);
 
-					flowHashMap.insert(std::make_pair(flowKey, tcpParser));
+					if (tcpParser->Trace(flowKey, tcp) == true) {
+
+						flowHashMap.insert(std::make_pair(flowKey, tcpParser));
+					}
 
 				}
 				else {
@@ -207,6 +210,7 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 			}
 			else {
 
+				it->second->Trace(flowKey, tcp);
 			}
 		}
 	}
