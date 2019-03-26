@@ -5,6 +5,8 @@
 #include <pcap.h>
 
 #include "flow.hh"
+#include "ip.hh"
+#include "ethernet.hh"	
 
 std::string pcapFileName;
 std::string captureDirectory;
@@ -148,6 +150,10 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 	const unsigned char *packetData;
 	int ret = 0;
 
+	const struct EthernetHeader *ethernet;
+	const struct IpHeader *ip;
+	uint32_t sizeIp;
+
 	while (((ret = pcap_next_ex(pcapHandle, &packetHeader, &packetData)) >= 0)) {
 
 		if (ret == -1) {
@@ -157,6 +163,14 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 		}
 		if (ret == 0)
 			continue;
+
+		ethernet = (struct EthernetHeader*)(packetData);
+
+		ip = (struct IpHeader*)(packetData + SIZE_ETHERNET);
+		sizeIp = IP_HL(ip) * 4;
+
+		if (ip->ipP == 6) {
+		}
 	}
 }
 
