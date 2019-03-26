@@ -13,6 +13,9 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\flow.hh" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8FC0D4B5-039A-4BA7-81D1-79C5E7125032}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

@@ -4,6 +4,8 @@
 
 #include <pcap.h>
 
+#include "flow.hh"
+
 std::string pcapFileName;
 std::string captureDirectory;
 std::string ipToFilter;
