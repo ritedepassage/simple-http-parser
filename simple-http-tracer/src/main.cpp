@@ -153,7 +153,9 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 
 	const struct EthernetHeader *ethernet;
 	const struct IpHeader *ip;
+	const struct TcpHeader *tcp; /* The TCP header */
 	uint32_t sizeIp;
+	uint32_t sizeTcp;
 
 	while (((ret = pcap_next_ex(pcapHandle, &packetHeader, &packetData)) >= 0)) {
 
@@ -171,6 +173,20 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 		sizeIp = IP_HL(ip) * 4;
 
 		if (ip->ipP == 6) {
+
+			tcp = (struct TcpHeader*)(packetData + SIZE_ETHERNET + sizeIp);
+			sizeTcp = TH_OFF(tcp) * 4;
+
+			Flow f_key;
+			f_key.srcAddr = ntohl(ip->ipSrc.S_un.S_addr);
+			f_key.dstAddr = ntohl(ip->ipDst.S_un.S_addr);
+			f_key.protocol = ip->ipP;
+			f_key.srcPort = ntohs(tcp->thSport);
+			f_key.dstPort = ntohs(tcp->thDport);
+			f_key.ipTotalLen = ntohs(ip->ipLen);
+			f_key.payloadLen = f_key.ipTotalLen - (sizeIp + sizeTcp);
+			f_key.payload = packetData + (SIZE_ETHERNET + sizeIp + sizeTcp);
+		}
 		}
 	}
 }
