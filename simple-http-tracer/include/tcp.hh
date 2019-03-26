@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "flow.hh"
+
 struct TcpHeader
 {
 	uint16_t thSport;
@@ -24,6 +26,24 @@ struct TcpHeader
 	uint16_t thWin;
 	uint16_t thSum;
 	uint16_t thUrp;
+};
+
+enum class TCP_CONNECTION_STATE
+{
+	UNKNOWN,
+	SYN,
+	SYN_ACK,
+	ESTABLISHED
+};
+
+class TcpStream
+{
+private:
+	Flow InitialFlow;
+	TCP_CONNECTION_STATE state;
+public:
+	TcpStream(Flow& initialFlow) : state{ TCP_CONNECTION_STATE::UNKNOWN }, InitialFlow{ initialFlow } {
+	}
 };
 
 #endif

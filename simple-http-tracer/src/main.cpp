@@ -1,17 +1,20 @@
 #include <stdint.h>
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <memory>
 
 #include <pcap.h>
 
 #include "ethernet.hh"
 #include "ip.hh"
 #include "tcp.hh"
-#include "flow.hh"
 
 std::string pcapFileName;
 std::string captureDirectory;
 std::string ipToFilter;
+
+std::unordered_map<Flow, std::shared_ptr<TcpStream>, FlowHash> flow_hash_map;
 
 char errorBuffer[PCAP_ERRBUF_SIZE];
 
@@ -186,7 +189,6 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 			f_key.ipTotalLen = ntohs(ip->ipLen);
 			f_key.payloadLen = f_key.ipTotalLen - (sizeIp + sizeTcp);
 			f_key.payload = packetData + (SIZE_ETHERNET + sizeIp + sizeTcp);
-		}
 		}
 	}
 }
