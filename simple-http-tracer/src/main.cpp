@@ -4,9 +4,10 @@
 
 #include <pcap.h>
 
-#include "flow.hh"
+#include "ethernet.hh"
 #include "ip.hh"
-#include "ethernet.hh"	
+#include "tcp.hh"
+#include "flow.hh"
 
 std::string pcapFileName;
 std::string captureDirectory;

@@ -17,6 +17,7 @@
     <ClInclude Include="include\ethernet.hh" />
     <ClInclude Include="include\flow.hh" />
     <ClInclude Include="include\ip.hh" />
+    <ClInclude Include="include\tcp.hh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8FC0D4B5-039A-4BA7-81D1-79C5E7125032}</ProjectGuid>
