@@ -14,7 +14,7 @@ std::string pcapFileName;
 std::string captureDirectory;
 std::string ipToFilter;
 
-std::unordered_map<Flow, std::shared_ptr<TcpStream>, FlowHash> flow_hash_map;
+std::unordered_map<Flow, std::shared_ptr<TcpStream>, FlowHash> flowHashMap;
 
 char errorBuffer[PCAP_ERRBUF_SIZE];
 
@@ -180,15 +180,34 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 			tcp = (struct TcpHeader*)(packetData + SIZE_ETHERNET + sizeIp);
 			sizeTcp = TH_OFF(tcp) * 4;
 
-			Flow f_key;
-			f_key.srcAddr = ntohl(ip->ipSrc.S_un.S_addr);
-			f_key.dstAddr = ntohl(ip->ipDst.S_un.S_addr);
-			f_key.protocol = ip->ipP;
-			f_key.srcPort = ntohs(tcp->thSport);
-			f_key.dstPort = ntohs(tcp->thDport);
-			f_key.ipTotalLen = ntohs(ip->ipLen);
-			f_key.payloadLen = f_key.ipTotalLen - (sizeIp + sizeTcp);
-			f_key.payload = packetData + (SIZE_ETHERNET + sizeIp + sizeTcp);
+			Flow flowKey;
+			flowKey.srcAddr = ntohl(ip->ipSrc.S_un.S_addr);
+			flowKey.dstAddr = ntohl(ip->ipDst.S_un.S_addr);
+			flowKey.protocol = ip->ipP;
+			flowKey.srcPort = ntohs(tcp->thSport);
+			flowKey.dstPort = ntohs(tcp->thDport);
+			flowKey.ipTotalLen = ntohs(ip->ipLen);
+			flowKey.payloadLen = flowKey.ipTotalLen - (sizeIp + sizeTcp);
+			flowKey.payload = packetData + (SIZE_ETHERNET + sizeIp + sizeTcp);
+
+			auto it = flowHashMap.find(flowKey);
+
+			if (it == flowHashMap.end()) {
+
+				if (tcp->thFlags & TH_SYN) {
+
+					auto tcpParser = std::make_shared<TcpStream>(flowKey);
+
+					flowHashMap.insert(std::make_pair(flowKey, tcpParser));
+
+				}
+				else {
+
+				}
+			}
+			else {
+
+			}
 		}
 	}
 }
