@@ -23,7 +23,8 @@ bool TcpReassembly::InspectSeqNumber(Flow &currentFlow, uint32_t currentSeqNo) {
 		ExpectedSeqNo += currentFlow.payloadLen;
 
 		if (currentFlow.payloadLen > 0) {
-			//TODO : consume tcp paylaoad
+
+			httpTracer->Trace(currentFlow.payload, currentFlow.payloadLen, currentFlow.srcPort, currentFlow.dstPort, CurrentSeqNo - InitialSeqNo);
 		}
 
 		return true;
@@ -60,7 +61,8 @@ void TcpReassembly::FindUnorderedPacket(Flow &currentFlow) {
 	if (it != unorderedPackets.end()) {
 
 		if (it->payloadSize > 0) {
-			//TODO : consume tcp paylaoad
+
+			httpTracer->Trace(it->payload, it->payloadSize, currentFlow.srcPort, currentFlow.dstPort, ExpectedSeqNo - InitialSeqNo);
 		}
 
 		ExpectedSeqNo += it->payloadSize;

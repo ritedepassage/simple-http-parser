@@ -18,6 +18,7 @@ private:
 	std::string requestHeaders;
 	std::string responseHeaders;
 	std::string requestUri;
+	uint32_t requestAccumulateSize;
 
 public:
 
@@ -25,6 +26,8 @@ public:
 		requestHeaders{ "" }, responseHeaders{ "" }, requestUri{ "" } {
 
 	}
+
+	void Trace(const unsigned char *payload, uint32_t payload_size, uint16_t src_port, uint16_t dst_port, uint32_t currentSeqNO);
 };
 
 #endif
