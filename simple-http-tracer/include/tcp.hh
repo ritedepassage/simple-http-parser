@@ -2,6 +2,8 @@
 #define _TCP_H_
 
 #include <stdint.h>
+#include <vector>
+#include <algorithm>
 
 #include "flow.hh"
 
@@ -36,9 +38,30 @@ enum class TCP_CONNECTION_STATE
 	ESTABLISHED
 };
 
+class UnorderedPacket
+{
+private:
+	static const uint16_t MAX_PAYLOAD_SIZE{ 1500 };
+
+public:
+	unsigned char payload[MAX_PAYLOAD_SIZE];
+	uint16_t payloadSize;
+	uint32_t seqNo;
+
+	UnorderedPacket(const unsigned char *data, uint16_t size, uint32_t currentSeqNo) {
+
+		if (size <= MAX_PAYLOAD_SIZE) { //jumbo frames (greater than max payload size) are not supported
+			payloadSize = size;
+			memcpy(payload, data, size);
+			seqNo = currentSeqNo;
+		}
+	}
+};
+
 class TcpReassembly
 {
 private:
+	std::vector<UnorderedPacket> unorderedPackets;
 
 	int32_t CompareSequenceNumbers(uint32_t seq1, uint32_t seq2);
 
@@ -55,6 +78,7 @@ public:
 
 	void Initialize(uint32_t initialSeqNo);
 	bool InspectSeqNumber(Flow &currentFlow, uint32_t currentSeqNo);
+	void FindUnorderedPacket(Flow &currentFlow);
 };
 
 class TcpStream

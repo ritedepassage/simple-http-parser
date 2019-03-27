@@ -22,9 +22,8 @@ bool TcpReassembly::InspectSeqNumber(Flow &currentFlow, uint32_t currentSeqNo) {
 
 		ExpectedSeqNo += currentFlow.payloadLen;
 
-
 		if (currentFlow.payloadLen > 0) {
-
+			//TODO : consume tcp paylaoad
 		}
 
 		return true;
@@ -36,9 +35,39 @@ bool TcpReassembly::InspectSeqNumber(Flow &currentFlow, uint32_t currentSeqNo) {
 	}
 	else { //CurrentSeqNo > ExpectedSeqNo
 
+		if (unorderedPackets.empty()) {
+			unorderedPackets.emplace_back(currentFlow.payload, currentFlow.payloadLen, currentSeqNo);
+		}
+		else{
+			unorderedPackets.emplace_back(currentFlow.payload, currentFlow.payloadLen, currentSeqNo);
+			FindUnorderedPacket(currentFlow);
+		}
 	}
 
 	return false;
+}
+
+void TcpReassembly::FindUnorderedPacket(Flow &currentFlow) {
+
+	auto it = std::find_if(unorderedPackets.begin(), unorderedPackets.end(),
+		[&](const UnorderedPacket &pk) {
+
+		int32_t res = CompareSequenceNumbers(pk.seqNo, ExpectedSeqNo);
+		return res == 0;
+	}
+	);
+
+	if (it != unorderedPackets.end()) {
+
+		if (it->payloadSize > 0) {
+			//TODO : consume tcp paylaoad
+		}
+
+		ExpectedSeqNo += it->payloadSize;
+		unorderedPackets.erase(it);
+
+		FindUnorderedPacket(currentFlow);
+	}
 }
 
 bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
