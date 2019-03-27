@@ -144,7 +144,26 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 
 			state = HTTP_STATE::HTTP_RESPONSE_HEADERS_COMPLETED;
 			accumulateContentSize = 0;
+
+			if (headersSize < responseHeaders.size()) {
+
+				uint32_t currentContentLen = responseHeaders.size() - headersSize;
+
+				contentLength -= currentContentLen;
+				accumulateContentSize += currentContentLen;
+
+				if (contentLength <= 0) {
+
+					state = HTTP_STATE::UNKNOWN;
+				}
+			}
 		}
+		else {
+			state = HTTP_STATE::UNKNOWN;
+		}
+
+		responseAccumulateSize = 0;
+		responseHeaders.clear();
 	}
 	}
 }
