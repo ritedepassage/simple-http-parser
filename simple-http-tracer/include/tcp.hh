@@ -40,6 +40,8 @@ class TcpReassembly
 {
 private:
 
+	int32_t CompareSequenceNumbers(uint32_t seq1, uint32_t seq2);
+
 public:
 	bool isInitial;
 	uint32_t InitialSeqNo;
@@ -52,6 +54,7 @@ public:
 	}
 
 	void Initialize(uint32_t initialSeqNo);
+	bool InspectSeqNumber(Flow &currentFlow, uint32_t currentSeqNo);
 };
 
 class TcpStream
