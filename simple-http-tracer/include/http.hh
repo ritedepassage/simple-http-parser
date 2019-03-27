@@ -60,6 +60,8 @@ private:
 
 public:
 
+	static std::string outputDirectory;
+
 	HttpTracer(bool isinitial) : isInitial{ isinitial }, state{ HTTP_STATE::UNKNOWN },
 		requestHeaders{ "" }, responseHeaders{ "" }, requestUri{ "" },
 		requestAccumulateSize{ 0 }, responseAccumulateSize{ 0 }, contentLength{ 0 }, accumulateContentSize{ 0 },

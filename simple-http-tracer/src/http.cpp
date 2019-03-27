@@ -1,5 +1,7 @@
 #include "http.hh"
 
+std::string HttpTracer::outputDirectory = "";
+
 HTTP_REQUEST_PARSE_RESULT HttpTracer::ParseRequestHeader() {
 
 	if (requestAccumulateSize < 4) { //not enough
@@ -145,8 +147,14 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 			accumulateContentSize = 0;
 
 			if (!binaryWriter.is_open()) {
+
 				std::stringstream ss;
-				ss << src_port << "-" << dst_port << "-" << requestUri << "-" << contentLength << ".bin";
+
+				if (outputDirectory.size())
+					ss << outputDirectory << "\\" << src_port << "-" << dst_port << "-" << requestUri << "-" << contentLength << ".bin";
+				else
+					ss << src_port << "-" << dst_port << "-" << requestUri << "-" << contentLength << ".bin";
+
 				streamUniqueName = ss.str();
 				binaryWriter.open(streamUniqueName.c_str(), std::ios::out | std::ios::binary);
 			}

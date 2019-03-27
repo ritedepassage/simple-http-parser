@@ -11,7 +11,6 @@
 #include "tcp.hh"
 
 std::string pcapFileName;
-std::string captureDirectory;
 std::string ipToFilter;
 
 std::unordered_map<Flow, std::shared_ptr<TcpStream>, FlowHash> flowHashMap;
@@ -34,7 +33,19 @@ void ParseCommandLineArguments(int argc, char **argv) {
 		}
 		else if (strcmp(argv[i], "-o") == 0) {
 			if (i + 1 < argc) {
-				captureDirectory = argv[i + 1];
+				DWORD fileType = GetFileAttributesA(argv[i + 1]);
+
+				if (fileType == INVALID_FILE_ATTRIBUTES || (fileType & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+
+					std::cout << "failed to access directory: " << argv[i + 1] <<
+						         " using current directory " << std::endl;
+
+					HttpTracer::outputDirectory = "";
+				}
+				else {
+
+					HttpTracer::outputDirectory = argv[i + 1];
+				}
 			}
 			else {
 				std::cout << "output directory name required" << std::endl;
