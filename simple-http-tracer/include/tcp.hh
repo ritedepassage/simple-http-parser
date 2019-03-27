@@ -62,15 +62,14 @@ class TcpReassembly
 {
 private:
 	std::vector<UnorderedPacket> unorderedPackets;
+	uint32_t InitialSeqNo;
+	uint32_t CurrentSeqNo;
+	uint32_t ExpectedSeqNo;
 
 	int32_t CompareSequenceNumbers(uint32_t seq1, uint32_t seq2);
 
 public:
 	bool isInitial;
-	uint32_t InitialSeqNo;
-	uint32_t CurrentSeqNo;
-	uint32_t ExpectedSeqNo;
-
 
 	TcpReassembly(bool i_isInitial) : isInitial{ i_isInitial }, InitialSeqNo{ 0 }, CurrentSeqNo{ 0 }, ExpectedSeqNo{ 0 }{
 

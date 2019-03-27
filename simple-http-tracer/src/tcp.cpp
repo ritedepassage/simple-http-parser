@@ -92,6 +92,7 @@ bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
 
 			state = TCP_CONNECTION_STATE::SYN;
 			InitialSide.Initialize(currentSeq);
+			return true;
 		}
 		else {
 			return false;
