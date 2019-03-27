@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string>
 
+#include <winsock2.h>
+
 
 class Flow {
 public:
