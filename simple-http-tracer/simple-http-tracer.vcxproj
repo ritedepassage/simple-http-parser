@@ -17,6 +17,7 @@
   <ItemGroup>
     <ClInclude Include="include\ethernet.hh" />
     <ClInclude Include="include\flow.hh" />
+    <ClInclude Include="include\http.hh" />
     <ClInclude Include="include\ip.hh" />
     <ClInclude Include="include\tcp.hh" />
   </ItemGroup>

@@ -1,11 +1,10 @@
 #ifndef _TCP_H_
 #define _TCP_H_
 
-#include <stdint.h>
 #include <vector>
 #include <algorithm>
 
-#include "flow.hh"
+#include "http.hh"
 
 struct TcpHeader
 {
@@ -65,13 +64,15 @@ private:
 	uint32_t InitialSeqNo;
 	uint32_t CurrentSeqNo;
 	uint32_t ExpectedSeqNo;
+	HttpTracer *httpTracer{ nullptr };
 
 	int32_t CompareSequenceNumbers(uint32_t seq1, uint32_t seq2);
 
 public:
 	bool isInitial;
 
-	TcpReassembly(bool i_isInitial) : isInitial{ i_isInitial }, InitialSeqNo{ 0 }, CurrentSeqNo{ 0 }, ExpectedSeqNo{ 0 }{
+	TcpReassembly(bool i_isInitial, HttpTracer *httptracer) : isInitial{ i_isInitial },
+		InitialSeqNo{ 0 }, CurrentSeqNo{ 0 }, ExpectedSeqNo{ 0 }, httpTracer{ httptracer } {
 
 	}
 
@@ -83,12 +84,13 @@ public:
 class TcpStream
 {
 private:
-
-	TcpReassembly InitialSide{ true };
-	TcpReassembly ReverseSide{ false };
+	HttpTracer httpTracer{ false };
+	TcpReassembly InitialSide{ true, &httpTracer };
+	TcpReassembly ReverseSide{ false, &httpTracer };
 
 	Flow InitialFlow;
 	TCP_CONNECTION_STATE state;
+
 public:
 
 	TcpStream(Flow& initialFlow) : state{ TCP_CONNECTION_STATE::UNKNOWN }, InitialFlow{ initialFlow } {

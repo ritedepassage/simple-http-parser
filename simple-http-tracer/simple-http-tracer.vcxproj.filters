@@ -35,5 +35,8 @@
     <ClInclude Include="include\tcp.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\http.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
