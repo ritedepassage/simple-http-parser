@@ -91,7 +91,7 @@ bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
 		if (currentHeader->thFlags & TH_SYN) {
 
 			state = TCP_CONNECTION_STATE::SYN;
-			InitialSide.Initialize(currentSeq);
+			reassembler->Initialize(currentSeq);
 			return true;
 		}
 		else {
@@ -102,7 +102,7 @@ bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
 		if ((currentHeader->thFlags & TH_SYN) && (currentHeader->thFlags & TH_ACK)) {
 
 			state = TCP_CONNECTION_STATE::SYN_ACK;
-
+			reassembler->Initialize(currentSeq);
 			return true;
 		}
 		else {
@@ -113,7 +113,7 @@ bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
 	case TCP_CONNECTION_STATE::SYN_ACK:
 		if (currentHeader->thFlags & TH_ACK) {
 
-			if (InitialSide.InspectSeqNumber(currentFlow, currentSeq)) {
+			if (reassembler->InspectSeqNumber(currentFlow, currentSeq)) {
 
 				state = TCP_CONNECTION_STATE::ESTABLISHED;
 				return true;
