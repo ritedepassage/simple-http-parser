@@ -124,9 +124,8 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 		requestAccumulateSize = 0;
 		accumulateContentSize = 0;
 		requestHeaders.clear();
-
-		break;
 	}
+		break;
 	case HTTP_STATE::HTTP_REQUEST_COMPLETED:
 	{
 		uint32_t headersSize{ 0 };
@@ -145,9 +144,18 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 			state = HTTP_STATE::HTTP_RESPONSE_HEADERS_COMPLETED;
 			accumulateContentSize = 0;
 
+			if (!binaryWriter.is_open()) {
+				std::stringstream ss;
+				ss << src_port << "-" << dst_port << "-" << requestUri << "-" << contentLength << ".bin";
+				streamUniqueName = ss.str();
+				binaryWriter.open(streamUniqueName.c_str(), std::ios::out | std::ios::binary);
+			}
+
 			if (headersSize < responseHeaders.size()) {
 
 				uint32_t currentContentLen = responseHeaders.size() - headersSize;
+
+				binaryWriter.write((const char*)&responseHeaders[headersSize], currentContentLen);
 
 				contentLength -= currentContentLen;
 				accumulateContentSize += currentContentLen;
@@ -155,6 +163,7 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 				if (contentLength <= 0) {
 
 					state = HTTP_STATE::UNKNOWN;
+					binaryWriter.close();
 				}
 			}
 		}
@@ -165,5 +174,22 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 		responseAccumulateSize = 0;
 		responseHeaders.clear();
 	}
+		break;
+	case HTTP_STATE::HTTP_RESPONSE_HEADERS_COMPLETED:
+	{
+		binaryWriter.write((const char *)payload, payload_size);
+
+		contentLength -= payload_size;
+		accumulateContentSize += payload_size;
+
+
+		if (contentLength <= 0) {
+
+			state = HTTP_STATE::UNKNOWN;
+			accumulateContentSize = 0;
+			binaryWriter.close();
+		}
+	}
+		break;
 	}
 }

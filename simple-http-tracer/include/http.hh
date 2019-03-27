@@ -3,6 +3,8 @@
 
 #include <string>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <cctype>
 
 #include "flow.hh"
@@ -52,11 +54,16 @@ private:
 	unsigned long long contentLength;
 	unsigned long long accumulateContentSize;
 
+	std::ofstream binaryWriter;
+
+	std::string streamUniqueName;
+
 public:
 
 	HttpTracer(bool isinitial) : isInitial{ isinitial }, state{ HTTP_STATE::UNKNOWN },
 		requestHeaders{ "" }, responseHeaders{ "" }, requestUri{ "" },
-		requestAccumulateSize{ 0 }, responseAccumulateSize{ 0 }, contentLength{ 0 }, accumulateContentSize{0} {
+		requestAccumulateSize{ 0 }, responseAccumulateSize{ 0 }, contentLength{ 0 }, accumulateContentSize{ 0 },
+		streamUniqueName{ "" }{
 
 	}
 
