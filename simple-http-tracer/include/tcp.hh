@@ -36,9 +36,31 @@ enum class TCP_CONNECTION_STATE
 	ESTABLISHED
 };
 
+class TcpReassembly
+{
+private:
+
+public:
+	bool isInitial;
+	uint32_t InitialSeqNo;
+	uint32_t CurrentSeqNo;
+	uint32_t ExpectedSeqNo;
+
+
+	TcpReassembly(bool i_isInitial) : isInitial{ i_isInitial }, InitialSeqNo{ 0 }, CurrentSeqNo{ 0 }, ExpectedSeqNo{ 0 }{
+
+	}
+
+	void Initialize(uint32_t initialSeqNo);
+};
+
 class TcpStream
 {
 private:
+
+	TcpReassembly InitialSide{ true };
+	TcpReassembly ReverseSide{ false };
+
 	Flow InitialFlow;
 	TCP_CONNECTION_STATE state;
 public:
