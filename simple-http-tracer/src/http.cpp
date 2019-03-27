@@ -52,6 +52,54 @@ HTTP_REQUEST_PARSE_RESULT HttpTracer::ParseRequestHeader() {
 	return HTTP_REQUEST_PARSE_RESULT::OK;
 }
 
+HTTP_RESPONSE_PARSE_RESULT HttpTracer::ParseResponseHeader(uint32_t &headersSize) {
+
+	headersSize = 0;
+
+	if (responseAccumulateSize < 4) { //not enough
+		return HTTP_RESPONSE_PARSE_RESULT::PARSE_INCOMPLETE;
+	}
+	if (responseAccumulateSize > 1500) { //larger than expected
+		return HTTP_RESPONSE_PARSE_RESULT::EXCEEDED;
+	}
+
+	size_t endOfHeaders = responseHeaders.find("\r\n\r\n");
+
+	if (endOfHeaders == std::string::npos)
+		return HTTP_RESPONSE_PARSE_RESULT::PARSE_INCOMPLETE;
+
+	size_t responseStart = responseHeaders.find("HTTP");
+	if (responseStart == std::string::npos || responseStart > 0)
+		return HTTP_RESPONSE_PARSE_RESULT::RESPONSE_START_NOT_EXPECTED;
+
+	responseStart += 4;
+
+	responseStart = responseHeaders.find("200 OK\r\n", responseStart);
+
+	if (responseStart == std::string::npos)
+		return HTTP_RESPONSE_PARSE_RESULT::RESPONSE_STATUS_CODE_ERROR;
+
+	responseStart = responseHeaders.find("Content-Length", responseStart);
+
+	if (responseStart == std::string::npos)
+		return HTTP_RESPONSE_PARSE_RESULT::CONTENT_LENGTH_HEADER_NOT_FOUND;
+
+	responseStart = responseHeaders.find_first_of("0123456789", responseStart);
+	if (responseStart == std::string::npos)
+		return HTTP_RESPONSE_PARSE_RESULT::CONTENT_LENGTH_NOT_FOUND;
+
+	try {
+		contentLength = std::stol(responseHeaders.substr(responseStart));
+	}
+	catch (...) {
+		return HTTP_RESPONSE_PARSE_RESULT::CONTENT_LENGTH_NOT_FOUND;
+	}
+
+	headersSize = endOfHeaders + 4;
+
+	return 	HTTP_RESPONSE_PARSE_RESULT::OK;
+}
+
 
 void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint16_t src_port, uint16_t dst_port, uint32_t currentSeqNO) {
 
@@ -74,9 +122,29 @@ void HttpTracer::Trace(const unsigned char *payload, uint32_t payload_size, uint
 		}
 
 		requestAccumulateSize = 0;
+		accumulateContentSize = 0;
 		requestHeaders.clear();
 
 		break;
+	}
+	case HTTP_STATE::HTTP_REQUEST_COMPLETED:
+	{
+		uint32_t headersSize{ 0 };
+
+		responseAccumulateSize += payload_size;
+		for (size_t i{}; i < payload_size; i++)
+			responseHeaders.push_back(payload[i]);
+
+		HTTP_RESPONSE_PARSE_RESULT reponseParseRes = ParseResponseHeader(headersSize);
+
+		if (reponseParseRes == HTTP_RESPONSE_PARSE_RESULT::PARSE_INCOMPLETE)
+			return;
+
+		if (reponseParseRes == HTTP_RESPONSE_PARSE_RESULT::OK) {
+
+			state = HTTP_STATE::HTTP_RESPONSE_HEADERS_COMPLETED;
+			accumulateContentSize = 0;
+		}
 	}
 	}
 }
