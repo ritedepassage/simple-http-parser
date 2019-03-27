@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\tcp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ethernet.hh" />

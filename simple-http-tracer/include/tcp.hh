@@ -49,9 +49,4 @@ public:
 	bool Trace(Flow &currentFlow, const TcpHeader *currentHeader);
 };
 
-bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
-
-	return true;
-}
-
 #endif
