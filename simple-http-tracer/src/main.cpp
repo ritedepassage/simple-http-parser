@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <signal.h>
 
 #include <pcap.h>
 
@@ -13,9 +14,19 @@
 std::string pcapFileName;
 std::string ipToFilter;
 
+sig_atomic_t volatile ceaseCapture = FALSE;
+
 std::unordered_map<Flow, std::shared_ptr<TcpStream>, FlowHash> flowHashMap;
 
 char errorBuffer[PCAP_ERRBUF_SIZE];
+
+void SignalHandler(int32_t signalNumber) {
+
+	if (signalNumber == SIGINT) {
+
+		ceaseCapture = TRUE;
+	}
+}
 
 void ParseCommandLineArguments(int argc, char **argv) {
 
@@ -171,7 +182,11 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 	uint32_t sizeIp;
 	uint32_t sizeTcp;
 
-	while (((ret = pcap_next_ex(pcapHandle, &packetHeader, &packetData)) >= 0)) {
+	signal(SIGINT, SignalHandler);
+
+	std::cout << "capture session started (use CTRL-C to stop) ..." << std::endl;
+
+	while (((ret = pcap_next_ex(pcapHandle, &packetHeader, &packetData)) >= 0) && ceaseCapture == FALSE) {
 
 		if (ret == -1) {
 
@@ -225,6 +240,10 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 			}
 		}
 	}
+
+	std::cout << "capture traffic ended (exiting...)" << std::endl;
+
+	return;
 }
 
 int main(int argc, char **argv) {
