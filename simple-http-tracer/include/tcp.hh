@@ -31,10 +31,11 @@ struct TcpHeader
 
 enum class TCP_CONNECTION_STATE
 {
-	UNKNOWN,
+	INITIAL,
 	SYN,
 	SYN_ACK,
-	ESTABLISHED
+	ESTABLISHED,
+	CLOSED
 };
 
 class UnorderedPacket
@@ -70,8 +71,9 @@ private:
 
 public:
 	bool isInitial;
+	bool isClosed;
 
-	TcpReassembly(bool i_isInitial, HttpTracer *httptracer) : isInitial{ i_isInitial },
+	TcpReassembly(bool i_isInitial, HttpTracer *httptracer) : isInitial{ i_isInitial }, isClosed{ false },
 		InitialSeqNo{ 0 }, CurrentSeqNo{ 0 }, ExpectedSeqNo{ 0 }, httpTracer{ httptracer } {
 
 	}
@@ -93,10 +95,12 @@ private:
 
 public:
 
-	TcpStream(Flow& initialFlow) : state{ TCP_CONNECTION_STATE::UNKNOWN }, InitialFlow{ initialFlow } {
+	TcpStream(Flow& initialFlow) : state{ TCP_CONNECTION_STATE::INITIAL }, InitialFlow{ initialFlow } {
 	}
 
-	bool Trace(Flow &currentFlow, const TcpHeader *currentHeader);
+	TCP_CONNECTION_STATE GetState();
+
+	void Trace(Flow &currentFlow, const TcpHeader *currentHeader);
 };
 
 #endif

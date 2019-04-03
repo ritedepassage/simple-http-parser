@@ -72,7 +72,12 @@ void TcpReassembly::FindUnorderedPacket(Flow &currentFlow) {
 	}
 }
 
-bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
+TCP_CONNECTION_STATE TcpStream::GetState() {
+
+	return state;
+}
+
+void TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
 
 	uint32_t currentSeq = ntohl(currentHeader->thSeq);
 
@@ -89,52 +94,70 @@ bool TcpStream::Trace(Flow &currentFlow, const TcpHeader *currentHeader) {
 
 	switch (state)
 	{
-	case TCP_CONNECTION_STATE::UNKNOWN:
+	case TCP_CONNECTION_STATE::INITIAL:
 		if (currentHeader->thFlags & TH_SYN) {
 
 			state = TCP_CONNECTION_STATE::SYN;
 			reassembler->Initialize(currentSeq);
-			return true;
-		}
-		else {
-			return false;
 		}
 		break;
 	case TCP_CONNECTION_STATE::SYN:
-		if ((currentHeader->thFlags & TH_SYN) && (currentHeader->thFlags & TH_ACK)) {
+		if (currentHeader->thFlags & TH_SYN) {
 
-			state = TCP_CONNECTION_STATE::SYN_ACK;
-			reassembler->Initialize(currentSeq);
-			return true;
+			if (currentHeader->thFlags & TH_ACK) {
+
+				state = TCP_CONNECTION_STATE::SYN_ACK;
+				reassembler->Initialize(currentSeq);
+			}
 		}
 		else {
 
-			return false;
+			state = TCP_CONNECTION_STATE::CLOSED;
 		}
 		break;
 	case TCP_CONNECTION_STATE::SYN_ACK:
-		if (currentHeader->thFlags & TH_ACK) {
+
+		if ((currentHeader->thFlags & TH_FIN) || (currentHeader->thFlags & TH_RST)) {
+
+			state = TCP_CONNECTION_STATE::CLOSED;
+		}
+		else if (currentHeader->thFlags & TH_ACK) {
 
 			if (reassembler->InspectSeqNumber(currentFlow, currentSeq)) {
 
 				state = TCP_CONNECTION_STATE::ESTABLISHED;
-				return true;
 			}
-			return false;
 		}
 		else {
-
-			return false;
 		}
 		break;
 	case TCP_CONNECTION_STATE::ESTABLISHED:
 
 		reassembler->InspectSeqNumber(currentFlow, currentSeq);
 
+		if (currentHeader->thFlags & TH_FIN) {
+
+			TcpReassembly *otherSide{ nullptr };
+
+			if (reassembler == &InitialSide)
+				otherSide = &ReverseSide;
+			else
+				otherSide = &InitialSide;
+
+			reassembler->isClosed = true;
+
+			if (otherSide->isClosed) {
+
+				state = TCP_CONNECTION_STATE::CLOSED;
+			}
+		}
+		else if (currentHeader->thFlags & TH_RST) {
+
+			state = TCP_CONNECTION_STATE::CLOSED;
+		}
+
 		break;
 	default:
 		break;
 	}
-
-	return false;
 }

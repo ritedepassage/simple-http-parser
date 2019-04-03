@@ -222,11 +222,13 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 
 				if (tcp->thFlags & TH_SYN) {
 
-					auto tcpParser = std::make_shared<TcpStream>(flowKey);
+					auto tcpStream = std::make_shared<TcpStream>(flowKey);
 
-					if (tcpParser->Trace(flowKey, tcp) == true) {
+					tcpStream->Trace(flowKey, tcp);
 
-						flowHashMap.insert(std::make_pair(flowKey, tcpParser));
+					if (tcpStream->GetState() == TCP_CONNECTION_STATE::SYN) {
+
+						flowHashMap.insert(std::make_pair(flowKey, tcpStream));
 					}
 
 				}
@@ -236,12 +238,20 @@ void CaptureTraffic(pcap_t *pcapHandle) {
 			}
 			else {
 
-				it->second->Trace(flowKey, tcp);
+				auto tcpStream = it->second;
+				tcpStream->Trace(flowKey, tcp);
+
+				if (tcpStream->GetState() == TCP_CONNECTION_STATE::CLOSED) {
+
+					flowHashMap.erase(it);
+				}
 			}
 		}
 	}
 
 	std::cout << "capture traffic ended (exiting...)" << std::endl;
+	std::cout << "press any key to exit (...)" << std::endl;
+	getchar();
 
 	return;
 }
